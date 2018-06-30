@@ -11,8 +11,10 @@ async def on_message(message):
         return
 
     if message.content.startswith('!hello'):
+        em = discord.Embed(title='My Embed Title', description='My Embed Content.', colour=0xDEADBF)
+        em.set_author(name='Someone', icon_url=client.user.default_avatar_url)
         msg = 'Hello {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
+        await client.send_message(message.channel, embed=em)
 
 @client.event
 async def on_ready():
