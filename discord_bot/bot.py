@@ -13,9 +13,7 @@ CHANNEL_NAME = os.environ['BOT_REPORT_CHANNEL_NAME']
 
 client = Bot(command_prefix=BOT_PREFIX)
 
-RECOGNIZED_EMOJIS = [b'1\xe2\x83\xa3', b'3\xe2\x83\xa3', b'4\xe2\x83\xa3', 
-                    b'5\xe2\x83\xa3', b'6\xe2\x83\xa3', b'7\xe2\x83\xa3', b'8\xe2\x83\xa3', 
-                    b'9\xe2\x83\xa3', b'\xf0\x9f\x94\x9f', b'\xe2\x9d\x93', b'\xe2\x9d\x94']
+RECOGNIZED_EMOJIS = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣', '🔟', '❓', '❔']
 
 
 @client.command(name='8ball',
@@ -56,15 +54,13 @@ async def on_reaction_add(reaction, user):
     reacted_message = reaction.message
     reporting_channel = discord.utils.get(reacted_message.server.channels, name=CHANNEL_NAME)
     existing_message = get_channel_message(client, reporting_channel, reacted_message.content)
-    if not existing_message and reaction.emoji.encode('utf-8') in RECOGNIZED_EMOJIS:
+    if not existing_message and reaction.emoji in RECOGNIZED_EMOJIS:
         await client.send_message(reporting_channel, reacted_message.content)
 
 
 @client.event
 async def on_reaction_remove(reaction, user):
     reacted_message = reaction.message
-    print('on reaction remove')
-    print(reacted_message.reactions)
     if not reacted_message.reactions:
         #  remove message from reporting channel
         reporting_channel = discord.utils.get(reacted_message.server.channels, name=CHANNEL_NAME)
