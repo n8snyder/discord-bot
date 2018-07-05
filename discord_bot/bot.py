@@ -56,9 +56,21 @@ async def on_reaction_add(reaction, user):
     reacted_message = reaction.message
     reporting_channel = discord.utils.get(reacted_message.server.channels, name=CHANNEL_NAME)
     existing_message = get_channel_message(client, reporting_channel, reacted_message.content)
-    print(reaction.emoji.encode('utf-8'))
     if not existing_message and reaction.emoji.encode('utf-8') in RECOGNIZED_EMOJIS:
         await client.send_message(reporting_channel, reacted_message.content)
+
+
+@client.event
+async def on_reaction_remove(reaction, user):
+    reacted_message = reaction.message
+    print('on reaction remove')
+    print(reacted_message.reactions)
+    if not reacted_message.reactions:
+        #  remove message from reporting channel
+        reporting_channel = discord.utils.get(reacted_message.server.channels, name=CHANNEL_NAME)
+        existing_message = get_channel_message(client, reporting_channel, reacted_message.content)
+        if existing_message:
+            await client.delete_message(existing_message)
 
 
 async def list_servers():
