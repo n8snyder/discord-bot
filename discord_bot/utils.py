@@ -58,10 +58,16 @@ class Alert():
 
     def compose_content(self):
         content = self.original_content
-        content += '\nRSVPs:'
+        rsvps = ''
+        total = 0
         for emoji, users in self.responses.items():
             for user in users:
-                content += f' {user.name} ({EMOJI_TEXT[emoji]})'
+                rsvps += f' {user.name} ({EMOJI_TEXT[emoji]})'
+                try:
+                    total += int(EMOJI_TEXT[emoji])
+                except ValueError:
+                    pass
+        content += f'\nRSVPs ({total}): {rsvps}'
         self.content = content
 
 
