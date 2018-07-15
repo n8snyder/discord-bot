@@ -4,6 +4,7 @@ import aiohttp
 import json
 import os
 import discord
+import arrow
 from discord import Game
 from discord.ext.commands import Bot
 
@@ -40,7 +41,8 @@ async def on_ready():
 async def on_reaction_add(reaction, user):
     if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS:
         reserved_message = reserved_messages[reaction.message.channel]
-        alert = reserved_message.get_or_create_alert(reaction.message.content)
+        alert = reserved_message.get_or_create_alert(
+            reaction.message)
         alert.responses.post(reaction, user)
         reserved_message.compose_content()
         await client.edit_message(reserved_message.message, reserved_message.content)
@@ -50,7 +52,7 @@ async def on_reaction_add(reaction, user):
 async def on_reaction_remove(reaction, user):
     if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS:
         reserved_message = reserved_messages[reaction.message.channel]
-        alert = reserved_message.get_alert(reaction.message.content)
+        alert = reserved_message.get_alert(reaction.message)
         alert.responses.delete(reaction, user)
         reserved_message.update_alerts()
         reserved_message.compose_content()
@@ -61,21 +63,37 @@ async def on_reaction_remove(reaction, user):
 async def on_message_edit(before, after):
     if is_alert_channel(before.channel):
         reserved_message = reserved_messages[before.channel]
-        alert = reserved_message.get_alert(before.content)
+        alert = reserved_message.get_alert(before)
         if alert:
-            alert.edit_original_content(after.content)
+            alert.update_message(after)
             reserved_message.compose_content()
             await client.edit_message(reserved_message.message, reserved_message.content)
 
 
-async def list_servers():
+# async def list_servers():
+#     await client.wait_until_ready()
+#     while not client.is_closed:
+#         print("Current servers:")
+#         for server in client.servers:
+#             print(server.name)
+#         await asyncio.sleep(600)
+
+
+async def remove_reactions():
     await client.wait_until_ready()
     while not client.is_closed:
-        print("Current servers:")
-        for server in client.servers:
-            print(server.name)
-        await asyncio.sleep(600)
+        now = arrow.utcnow()
+        for reserved_message in reserved_messages.values():
+            for alert in reserved_message.alerts:
+                if (now - arrow.get(alert.message.timestamp)).seconds > 1:
+                    for server in client.servers:
+                        responses = alert.responses.member_responses(server)
+                        for emoji, members in responses.items():
+                            for member in members:
+                                await client.remove_reaction(alert.message, emoji, member)
+        print('Finished removing reactions.')
+        await asyncio.sleep(10)
 
 
-client.loop.create_task(list_servers())
+client.loop.create_task(remove_reactions())
 client.run(TOKEN)

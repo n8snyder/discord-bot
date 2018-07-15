@@ -15,16 +15,16 @@ class ReservedMessage():
         self.content = message.content
         self.alerts = []
 
-    def get_alert(self, content):
+    def get_alert(self, message):
         for alert in self.alerts:
-            if alert.original_content == content:
+            if alert.message.id == message.id:
                 return alert
         return None
 
-    def get_or_create_alert(self, content):
-        alert = self.get_alert(content)
+    def get_or_create_alert(self, message):
+        alert = self.get_alert(message)
         if not alert:
-            alert = Alert(content)
+            alert = Alert(message)
             self.alerts.append(alert)
         return alert
 
@@ -39,26 +39,24 @@ class ReservedMessage():
         content = ''
         for alert in self.alerts:
             alert.compose_content()
-            content += f'\n{alert.content}\n'
+            content += f'\n{alert.composed_content}\n'
         if not content:
             content = '*Reserved*'
         self.content = content
 
 
 class Alert():
-    def __init__(self, content):
+    def __init__(self, message):
         self.responses = Responses()
-        self.original_content = content
-        self.content = content
+        self.message = message
+        self.composed_content = message.content
 
-    def edit_content(self, content):
-        self.content = content
-
-    def edit_original_content(self, content):
-        self.original_content = content
+    def update_message(self, message):
+        self.message = message
+        self.compose_content()
 
     def compose_content(self):
-        content = self.original_content
+        content = self.message.content
         rsvps = ''
         total_rsvps = 0
         maybes = ''
@@ -77,7 +75,7 @@ class Alert():
 
         content += f'\nRSVPs ({total_rsvps}): {rsvps}'
         content += f'\nMaybes ({total_maybes}): {maybes}'
-        self.content = content
+        self.composed_content = content
 
 
 class Responses(defaultdict):
@@ -90,6 +88,13 @@ class Responses(defaultdict):
     def delete(self, reaction, user):
         self[reaction.emoji] = [
             responded_user for responded_user in self[reaction.emoji] if responded_user != user]
+
+    def member_responses(self, server):
+        user_responses = defaultdict(list)
+        for emoji, users in self.items():
+            for user in users:
+                user_responses[emoji].append(server.get_member(user.id))
+        return user_responses
 
 
 def is_alert_channel(channel):

@@ -9,6 +9,7 @@ django = "*"
 asyncio = "*"
 emoji = "*"
 ipython = "*"
+arrow = "*"
 
 [dev-packages]
 
