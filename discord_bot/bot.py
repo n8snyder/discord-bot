@@ -57,6 +57,17 @@ async def on_reaction_remove(reaction, user):
         await client.edit_message(reserved_message.message, reserved_message.content)
 
 
+@client.event
+async def on_message_edit(before, after):
+    if is_alert_channel(before.channel):
+        reserved_message = reserved_messages[before.channel]
+        alert = reserved_message.get_alert(before.content)
+        if alert:
+            alert.edit_original_content(after.content)
+            reserved_message.compose_content()
+            await client.edit_message(reserved_message.message, reserved_message.content)
+
+
 async def list_servers():
     await client.wait_until_ready()
     while not client.is_closed:
