@@ -21,6 +21,10 @@ class ReservedMessage():
                 return alert
         return None
 
+    def delete_alert(self, message):
+        self.alerts = [
+            alert for alert in self.alerts if alert.message.id != message.id]
+
     def get_or_create_alert(self, message):
         alert = self.get_alert(message)
         if not alert:

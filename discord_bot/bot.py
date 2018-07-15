@@ -70,13 +70,13 @@ async def on_message_edit(before, after):
             await client.edit_message(reserved_message.message, reserved_message.content)
 
 
-# async def list_servers():
-#     await client.wait_until_ready()
-#     while not client.is_closed:
-#         print("Current servers:")
-#         for server in client.servers:
-#             print(server.name)
-#         await asyncio.sleep(600)
+@client.event
+async def on_message_delete(message):
+    if is_alert_channel(message.channel):
+        reserved_message = reserved_messages[message.channel]
+        reserved_message.delete_alert(message)
+        reserved_message.compose_content()
+        await client.edit_message(reserved_message.message, reserved_message.content)
 
 
 async def remove_reactions():
@@ -85,14 +85,14 @@ async def remove_reactions():
         now = arrow.utcnow()
         for reserved_message in reserved_messages.values():
             for alert in reserved_message.alerts:
-                if (now - arrow.get(alert.message.timestamp)).seconds > 1:
+                if (now - arrow.get(alert.message.timestamp)).seconds > 60*60 + 60*45:
                     for server in client.servers:
                         responses = alert.responses.member_responses(server)
                         for emoji, members in responses.items():
                             for member in members:
                                 await client.remove_reaction(alert.message, emoji, member)
         print('Finished removing reactions.')
-        await asyncio.sleep(10)
+        await asyncio.sleep(300)
 
 
 client.loop.create_task(remove_reactions())
