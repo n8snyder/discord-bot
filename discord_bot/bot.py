@@ -33,24 +33,28 @@ async def on_ready():
         message = await client.send_message(channel, '*Reserved*')
         reserved_message = ReservedMessage(message)
         reserved_messages[channel] = reserved_message
+        await client.pin_message(message)
 
 
 @client.event
 async def on_reaction_add(reaction, user):
     if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS:
         reserved_message = reserved_messages[reaction.message.channel]
-        alert = reserved_message.get_or_create_alert(reaction.message)
+        alert = reserved_message.get_or_create_alert(reaction.message.content)
         alert.responses.post(reaction, user)
         reserved_message.compose_content()
-        message = await client.edit_message(reserved_message.message, reserved_message.content)
-        await client.pin_message(message)
+        await client.edit_message(reserved_message.message, reserved_message.content)
 
 
 @client.event
 async def on_reaction_remove(reaction, user):
     if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS:
-        content = remove_user_from_content(reaction.message, reaction, user)
-        await client.edit_message(reaction.message, content)
+        reserved_message = reserved_messages[reaction.message.channel]
+        alert = reserved_message.get_alert(reaction.message.content)
+        alert.responses.delete(reaction, user)
+        reserved_message.update_alerts()
+        reserved_message.compose_content()
+        await client.edit_message(reserved_message.message, reserved_message.content)
 
 
 async def list_servers():

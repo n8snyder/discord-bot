@@ -12,29 +12,32 @@ class ReservedMessage():
     def __init__(self, message):
         self.message = message
         self.content = message.content
-        self.alerts = {}
+        self.alerts = []
 
-    def get_alert(self, message):
-        try:
-            alert = self.alerts[message.id]
-        except KeyError:
-            alert = None
-        finally:
-            return alert
+    def get_alert(self, content):
+        for alert in self.alerts:
+            if alert.original_content == content:
+                return alert
+        return None
 
-    def get_or_create_alert(self, message):
-        alert = self.get_alert(message)
+    def get_or_create_alert(self, content):
+        alert = self.get_alert(content)
         if not alert:
-            alert = Alert(message.content)
-            self.alerts[message.id] = alert
+            alert = Alert(content)
+            self.alerts.append(alert)
         return alert
+
+    def update_alerts(self):
+        updated_alerts = []
+        for alert in self.alerts:
+            if any(alert.responses.values()):
+                updated_alerts.append(alert)
+        self.alerts = updated_alerts
 
     def compose_content(self):
         content = ''
-        for message_id, alert in self.alerts.items():
-            print(f'before {alert.original_content}\n{alert.content}')
+        for alert in self.alerts:
             alert.compose_content()
-            print(f'after {alert.original_content}\n{alert.content}')
             content += f'\n{alert.content}'
         if not content:
             content = '*Reserved*'
