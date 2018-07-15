@@ -2,8 +2,9 @@
 from collections import defaultdict
 from discord.utils import find
 
-RECOGNIZED_EMOJIS = ['1⃣', '2⃣', '3⃣', '4⃣',
-                     '5⃣', '6⃣', '7⃣', '8⃣', '9⃣', '🔟', '❓', '❔']
+NUMBER_EMOJIS = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣', '🔟']
+QUESTION_EMOJIS = ['❓', '❔']
+RECOGNIZED_EMOJIS = NUMBER_EMOJIS + QUESTION_EMOJIS
 EMOJI_TEXT = {'1⃣': '1', '2⃣': '2', '3⃣': '3', '4⃣': '4', '5⃣': '5',
               '6⃣': '6', '7⃣': '7', '8⃣': '8', '9⃣': '9', '🔟': '10', '❓': '?', '❔': '?'}
 
@@ -38,7 +39,7 @@ class ReservedMessage():
         content = ''
         for alert in self.alerts:
             alert.compose_content()
-            content += f'\n{alert.content}'
+            content += f'\n{alert.content}\n'
         if not content:
             content = '*Reserved*'
         self.content = content
@@ -59,15 +60,23 @@ class Alert():
     def compose_content(self):
         content = self.original_content
         rsvps = ''
-        total = 0
+        total_rsvps = 0
+        maybes = ''
+        total_maybes = 0
         for emoji, users in self.responses.items():
             for user in users:
-                rsvps += f' {user.name} ({EMOJI_TEXT[emoji]})'
-                try:
-                    total += int(EMOJI_TEXT[emoji])
-                except ValueError:
+                if emoji in NUMBER_EMOJIS:
+                    rsvps += f' {user.name} ({EMOJI_TEXT[emoji]})'
+                    total_rsvps += int(EMOJI_TEXT[emoji])
+                elif emoji in QUESTION_EMOJIS:
+                    maybes += f' {user.name}'
+                    total_maybes += 1
+                else:
+                    # This case is unhandled
                     pass
-        content += f'\nRSVPs ({total}): {rsvps}'
+
+        content += f'\nRSVPs ({total_rsvps}): {rsvps}'
+        content += f'\nMaybes ({total_maybes}): {maybes}'
         self.content = content
 
 
