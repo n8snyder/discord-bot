@@ -12,7 +12,6 @@ from utils import (is_alert_channel, ReservedMessage, RECOGNIZED_EMOJIS)
 
 BOT_PREFIX = ("?", "!")
 TOKEN = os.environ['BOT_TOKEN']
-CHANNEL_NAME = os.environ['BOT_REPORT_CHANNEL_NAME']
 
 
 client = Bot(command_prefix=BOT_PREFIX)
