@@ -104,33 +104,3 @@ class Responses(defaultdict):
 
 def is_alert_channel(channel):
     return 'alert' in channel.name.lower()
-
-
-def get_original_content(content):
-    return content.split('RSVPs:')[0]
-
-
-def get_channel_message(client, channel, content):
-    #  returns the first message with the given content in the given channel.
-    original_content = get_original_content(content)
-    existing_message = find(lambda m: get_original_content(
-        m.content) == original_content and m.channel == channel, client.messages)
-    return existing_message
-
-
-def add_user_to_content(message, reaction, user):
-    # adds names to message content
-    print(message.content)
-    message_content = message.content.split('RSVPs:')[0]
-    try:
-        current_rsvps = message.content.split('RSVPs:')[1]
-    except IndexError:
-        updated_rsvps = f"{user.name} {reaction.emoji}"
-    else:
-        updated_rsvps = f"{current_rsvps}, {user.name} {reaction.emoji}"
-    return f'{message_content} RSVPs: {updated_rsvps}'
-
-
-def remove_user_from_content(message, reaction, user):
-    # remove user from message
-    return message.content

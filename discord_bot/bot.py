@@ -8,8 +8,7 @@ import arrow
 from discord import Game
 from discord.ext.commands import Bot
 
-from utils import (get_channel_message, get_original_content,
-                   add_user_to_content, remove_user_from_content, is_alert_channel, ReservedMessage, RECOGNIZED_EMOJIS)
+from utils import (is_alert_channel, ReservedMessage, RECOGNIZED_EMOJIS)
 
 BOT_PREFIX = ("?", "!")
 TOKEN = os.environ['BOT_TOKEN']
