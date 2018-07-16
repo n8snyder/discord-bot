@@ -76,9 +76,10 @@ class Alert():
                 else:
                     # This case is unhandled
                     pass
-
-        content += f'\nRSVPs ({total_rsvps}): {rsvps}'
-        content += f'\nMaybes ({total_maybes}): {maybes}'
+        if rsvps:
+            content += f'\nRSVPs ({total_rsvps}): {rsvps}'
+        if maybes:
+            content += f'\nMaybes ({total_maybes}): {maybes}'
         self.composed_content = content
 
 
