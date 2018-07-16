@@ -39,10 +39,9 @@ async def on_ready():
 
 @client.event
 async def on_reaction_add(reaction, user):
-    if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS:
+    if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
         reserved_message = reserved_messages[reaction.message.channel]
-        alert = reserved_message.get_or_create_alert(
-            reaction.message)
+        alert = reserved_message.create_alert(reaction.message)
         alert.responses.post(reaction, user)
         reserved_message.compose_content()
         await client.edit_message(reserved_message.message, reserved_message.content)
@@ -50,7 +49,7 @@ async def on_reaction_add(reaction, user):
 
 @client.event
 async def on_reaction_remove(reaction, user):
-    if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS:
+    if is_alert_channel(reaction.message.channel) and reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
         reserved_message = reserved_messages[reaction.message.channel]
         alert = reserved_message.get_alert(reaction.message)
         alert.responses.delete(reaction, user)
@@ -61,7 +60,7 @@ async def on_reaction_remove(reaction, user):
 
 @client.event
 async def on_message_edit(before, after):
-    if is_alert_channel(before.channel):
+    if is_alert_channel(before.channel) and client.user != before.author:
         reserved_message = reserved_messages[before.channel]
         alert = reserved_message.get_alert(before)
         if alert:
@@ -72,7 +71,7 @@ async def on_message_edit(before, after):
 
 @client.event
 async def on_message_delete(message):
-    if is_alert_channel(message.channel):
+    if is_alert_channel(message.channel) and client.user != message.author:
         reserved_message = reserved_messages[message.channel]
         reserved_message.delete_alert(message)
         reserved_message.compose_content()

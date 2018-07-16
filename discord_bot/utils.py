@@ -25,9 +25,9 @@ class ReservedMessage():
         self.alerts = [
             alert for alert in self.alerts if alert.message.id != message.id]
 
-    def get_or_create_alert(self, message):
+    def create_alert(self, message):
         alert = self.get_alert(message)
-        if not alert:
+        if not alert and message.id != self.message.id:
             alert = Alert(message)
             self.alerts.append(alert)
         return alert
