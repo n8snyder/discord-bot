@@ -9,7 +9,7 @@ EMOJI_TEXT = {'1⃣': '1', '2⃣': '2', '3⃣': '3', '4⃣': '4', '5⃣': '5',
               '6⃣': '6', '7⃣': '7', '8⃣': '8', '9⃣': '9', '🔟': '10', '❓': '?', '❔': '?'}
 
 
-class ReservedMessage():
+class RSVPMessage():
     def __init__(self, message):
         self.message = message
         self.content = message.content
