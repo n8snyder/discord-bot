@@ -13,12 +13,8 @@ from utils import (is_alert_channel, ReservedMessage, RECOGNIZED_EMOJIS)
 BOT_PREFIX = ("?", "!")
 TOKEN = os.environ['BOT_TOKEN']
 
-
 client = Bot(command_prefix=BOT_PREFIX)
 
-
-# Keys are message ids, values are messages
-alerts = {}
 reserved_messages = {}
 
 
@@ -29,7 +25,7 @@ async def on_ready():
     all_alert_channels = [
         channel for channel in client.get_all_channels() if is_alert_channel(channel)]
     for channel in all_alert_channels:
-        message = await client.send_message(channel, '*Reserved*')
+        message = await client.send_message(channel, '*No RSVPs*')
         reserved_message = ReservedMessage(message)
         reserved_messages[channel] = reserved_message
         await client.pin_message(message)
@@ -75,6 +71,17 @@ async def on_message_delete(message):
         reserved_message.compose_content()
         await client.edit_message(reserved_message.message, reserved_message.content)
 
+# on_reaction_clear is the same as on_message_delete
+
+
+@client.event
+async def on_reaction_clear(message, reactions):
+    if is_alert_channel(message.channel) and client.user != message.author:
+        reserved_message = reserved_messages[message.channel]
+        reserved_message.delete_alert(message)
+        reserved_message.compose_content()
+        await client.edit_message(reserved_message.message, reserved_message.content)
+
 
 async def remove_reactions():
     await client.wait_until_ready()
@@ -83,13 +90,9 @@ async def remove_reactions():
         for reserved_message in reserved_messages.values():
             for alert in reserved_message.alerts:
                 if (now - arrow.get(alert.message.timestamp)).seconds > 60*60 + 60*45:
-                    for server in client.servers:
-                        responses = alert.responses.member_responses(server)
-                        for emoji, members in responses.items():
-                            for member in members:
-                                await client.remove_reaction(alert.message, emoji, member)
+                    await client.clear_reactions(alert.message)
         print('Finished removing reactions.')
-        await asyncio.sleep(300)
+        await asyncio.sleep(60*30)
 
 
 client.loop.create_task(remove_reactions())

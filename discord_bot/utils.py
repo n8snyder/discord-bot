@@ -45,7 +45,7 @@ class ReservedMessage():
             alert.compose_content()
             content += f'\n{alert.composed_content}\n'
         if not content:
-            content = '*Reserved*'
+            content = '*No RSVPs*'
         self.content = content
 
 
@@ -93,13 +93,6 @@ class Responses(defaultdict):
     def delete(self, reaction, user):
         self[reaction.emoji] = [
             responded_user for responded_user in self[reaction.emoji] if responded_user != user]
-
-    def member_responses(self, server):
-        user_responses = defaultdict(list)
-        for emoji, users in self.items():
-            for user in users:
-                user_responses[emoji].append(server.get_member(user.id))
-        return user_responses
 
 
 def is_alert_channel(channel):
