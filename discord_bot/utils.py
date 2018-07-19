@@ -1,6 +1,7 @@
 
 from collections import defaultdict
 from discord.utils import find
+import arrow
 
 NUMBER_EMOJIS = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣', '🔟']
 QUESTION_EMOJIS = ['❓', '❔']
@@ -10,10 +11,12 @@ EMOJI_TEXT = {'1⃣': '1', '2⃣': '2', '3⃣': '3', '4⃣': '4', '5⃣': '5',
 
 
 class RSVPMessage():
-    def __init__(self, message):
+    def __init__(self, message, expiration=60 * 60 + 60 * 45):
         self.message = message
         self.content = message.content
         self.alerts = []
+        # expiration is time in seconds until alerts become untracked.
+        self.expiration = expiration
 
     def get_alert(self, message):
         for alert in self.alerts:
@@ -27,8 +30,9 @@ class RSVPMessage():
 
     def create_alert(self, message):
         alert = self.get_alert(message)
-        if not alert and message.id != self.message.id:
-            alert = Alert(message)
+        if (not alert and message.id != self.message.id and
+                (arrow.utcnow() - arrow.get(message.timestamp)).seconds < self.expiration):
+            alert = Alert(message, self.expiration)
             self.alerts.append(alert)
         return alert
 
@@ -50,10 +54,16 @@ class RSVPMessage():
 
 
 class Alert():
-    def __init__(self, message):
+    def __init__(self, message, expiration=None):
         self.responses = Responses()
         self.message = message
         self.composed_content = message.content
+        self.post_date = message.timestamp
+        self.expiration = expiration
+
+    @property
+    def is_expired(self):
+        return (arrow.utcnow() - arrow.get(self.post_date)).seconds > self.expiration
 
     def update_message(self, message):
         self.message = message

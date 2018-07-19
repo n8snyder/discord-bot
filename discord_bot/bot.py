@@ -26,7 +26,8 @@ async def on_ready():
 
 @client.command(name='rsvp_setup', pass_context=True)
 async def rsvp_setup(context):
-    if context.message.channel not in rsvp_messages.keys() and context.message.author.server_permissions.administrator:
+    if (context.message.channel not in rsvp_messages.keys() and
+            context.message.author.server_permissions.administrator):
         rsvp_message = await client.say('*No RSVPs*')
         rsvp_messages[context.message.channel] = RSVPMessage(rsvp_message)
         await client.pin_message(rsvp_message)
@@ -55,9 +56,10 @@ async def on_reaction_add(reaction, user):
 
     if reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
         alert = rsvp_message.create_alert(reaction.message)
-        alert.responses.post(reaction, user)
-        rsvp_message.compose_content()
-        await client.edit_message(rsvp_message.message, rsvp_message.content)
+        if alert:
+            alert.responses.post(reaction, user)
+            rsvp_message.compose_content()
+            await client.edit_message(rsvp_message.message, rsvp_message.content)
 
 
 @client.event
@@ -103,33 +105,22 @@ async def on_message_delete(message):
         rsvp_message.compose_content()
         await client.edit_message(rsvp_message.message, rsvp_message.content)
 
-# on_reaction_clear is the same as on_message_delete
 
-
-@client.event
-async def on_reaction_clear(message, reactions):
-    try:
-        rsvp_message = rsvp_messages[message.channel]
-    except KeyError:
-        return
-
-    if client.user != message.author:
-        rsvp_message.delete_alert(message)
-        rsvp_message.compose_content()
-        await client.edit_message(rsvp_message.message, rsvp_message.content)
-
-
-async def remove_reactions():
+async def remove_alerts():
     await client.wait_until_ready()
     while not client.is_closed:
-        await asyncio.sleep(60*30)
-        now = arrow.utcnow()
-        for rsvp_message in rsvp_messages.values():
-            for alert in rsvp_message.alerts:
-                if (now - arrow.get(alert.message.timestamp)).seconds > 60*60 + 60*45:
-                    await client.clear_reactions(alert.message)
-        print('Finished removing reactions.')
+        await asyncio.sleep(1)
+
+        if any([rsvp_message.alerts for rsvp_message in rsvp_messages.values()]):
+            print('Removing expired alerts...')
+            await asyncio.sleep(60 * 5)
+            for rsvp_message in rsvp_messages.values():
+                for alert in rsvp_message.alerts:
+                    if alert.is_expired:
+                        rsvp_message.delete_alert(alert.message)
+                rsvp_message.compose_content()
+                await client.edit_message(rsvp_message.message, rsvp_message.content)
 
 
-client.loop.create_task(remove_reactions())
+client.loop.create_task(remove_alerts())
 client.run(TOKEN)
