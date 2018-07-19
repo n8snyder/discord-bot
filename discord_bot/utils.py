@@ -93,7 +93,3 @@ class Responses(defaultdict):
     def delete(self, reaction, user):
         self[reaction.emoji] = [
             responded_user for responded_user in self[reaction.emoji] if responded_user != user]
-
-
-def is_alert_channel(channel):
-    return 'alert' in channel.name.lower()
