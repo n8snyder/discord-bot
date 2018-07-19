@@ -5,9 +5,9 @@ name = "pypi"
 
 [packages]
 django = "*"
-emoji = "*"
 ipython = "*"
 arrow = "*"
+"discord.py" = "*"
 
 [dev-packages]
 
