@@ -33,7 +33,7 @@ class RSVPMessage():
         if (not alert and message.id != self.message.id and
                 (arrow.utcnow() - arrow.get(message.timestamp)).seconds < self.expiration):
             alert = Alert(message, self.expiration)
-            self.alerts.append(alert)
+            self.alerts = [alert] + self.alerts
         return alert
 
     def update_alerts(self):
