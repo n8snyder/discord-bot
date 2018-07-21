@@ -8,7 +8,7 @@ import arrow
 from discord import Game
 from discord.ext.commands import Bot
 
-from utils import (RSVPMessage, RECOGNIZED_EMOJIS)
+from utils import (RSVPMessage, RECOGNIZED_EMOJIS, parse_expiration)
 
 BOT_PREFIX = ("!")
 TOKEN = os.environ['BOT_TOKEN']
@@ -18,11 +18,9 @@ client = Bot(command_prefix=BOT_PREFIX)
 rsvp_messages = {}
 
 
-@client.event
-async def on_ready():
-    await client.change_presence(game=Game(name="with humans"))
-    print("Logged in as " + client.user.name)
-
+#
+# Commands
+#
 
 @client.command(name='rsvp_setup', pass_context=True)
 async def rsvp_setup(context):
@@ -45,6 +43,29 @@ async def rsvp_destroy(context):
         for alert in rsvp_message.alerts:
             await client.clear_reactions(alert.message)
         await client.delete_message(rsvp_message.message)
+
+
+@client.command(name='expires', pass_context=True)
+async def expires(context):
+    if not context.message.author.server_permissions.administrator:
+        return
+    try:
+        rsvp_message = rsvp_messages[context.message.channel]
+    except KeyError:
+        return
+
+    expiration = parse_expiration(context.view.read_rest().strip())
+    rsvp_message.set_expiration(expiration)
+
+#
+# Events
+#
+
+
+@client.event
+async def on_ready():
+    await client.change_presence(game=Game(name="with humans"))
+    print("Logged in as " + client.user.name)
 
 
 @client.event

@@ -10,6 +10,27 @@ EMOJI_TEXT = {'1⃣': '1', '2⃣': '2', '3⃣': '3', '4⃣': '4', '5⃣': '5',
               '6⃣': '6', '7⃣': '7', '8⃣': '8', '9⃣': '9', '🔟': '10', '❓': '?', '❔': '?'}
 
 
+def parse_expiration(time_text):
+    if time_text.lower() == 'never':
+        return float('Inf')
+
+    time_in_seconds = 0
+    split_time = time_text.split()
+    time_iter = iter(split_time)
+    for time in time_iter:
+        amount = float(time)
+        time_unit = next(time_iter).lower()
+        if time_unit in ['sec', 'secs', 'second', 'seconds']:
+            time_in_seconds += amount
+        elif time_unit in ['minutes', 'minute', 'mins', 'min']:
+            time_in_seconds += amount * 60
+        elif time_unit in ['hours', 'hour']:
+            time_in_seconds += amount * 60 * 60
+        elif time_unit in ['days', 'day']:
+            time_in_seconds += amount * 60 * 60 * 24
+    return time_in_seconds
+
+
 class RSVPMessage():
     def __init__(self, message, expiration=60 * 60 + 60 * 45):
         self.message = message
@@ -52,6 +73,11 @@ class RSVPMessage():
             content = '*No RSVPs*'
         self.content = content
 
+    def set_expiration(self, expiration):
+        self.expiration = expiration
+        for alert in self.alerts:
+            alert.set_expiration(expiration)
+
 
 class Alert():
     def __init__(self, message, expiration=None):
@@ -64,6 +90,9 @@ class Alert():
     @property
     def is_expired(self):
         return (arrow.utcnow() - arrow.get(self.post_date)).seconds > self.expiration
+
+    def set_expiration(expiration):
+        self.expiration = expiration
 
     def update_message(self, message):
         self.message = message
