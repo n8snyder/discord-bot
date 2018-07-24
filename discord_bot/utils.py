@@ -91,7 +91,7 @@ class Alert():
     def is_expired(self):
         return (arrow.utcnow() - arrow.get(self.post_date)).seconds > self.expiration
 
-    def set_expiration(expiration):
+    def set_expiration(self, expiration):
         self.expiration = expiration
 
     def update_message(self, message):
