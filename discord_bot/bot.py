@@ -43,7 +43,7 @@ async def rsvp_destroy(context):
         await client.delete_message(rsvp_message.message)
 
 
-@client.command(name='expires', description='Sets the amount of time for rsvps to expire.' pass_context=True)
+@client.command(name='expires', description='Sets the amount of time for rsvps to expire.', pass_context=True)
 async def expires(context):
     if not context.message.author.server_permissions.administrator:
         return
