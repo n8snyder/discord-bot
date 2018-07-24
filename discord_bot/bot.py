@@ -40,8 +40,6 @@ async def rsvp_destroy(context):
     except KeyError:
         return
     else:
-        for alert in rsvp_message.alerts:
-            await client.clear_reactions(alert.message)
         await client.delete_message(rsvp_message.message)
 
 
