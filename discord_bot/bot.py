@@ -22,7 +22,7 @@ rsvp_messages = {}
 # Commands
 #
 
-@client.command(name='rsvp_setup', pass_context=True)
+@client.command(name='rsvp_setup', description='Initial setup for channel rsvp message.', pass_context=True)
 async def rsvp_setup(context):
     if (context.message.channel not in rsvp_messages.keys() and
             context.message.author.server_permissions.administrator):
@@ -31,7 +31,7 @@ async def rsvp_setup(context):
         await client.pin_message(rsvp_message)
 
 
-@client.command(name='rsvp_destroy', pass_context=True)
+@client.command(name='rsvp_destroy', description='Removes rsvp message from channel.', pass_context=True)
 async def rsvp_destroy(context):
     if not context.message.author.server_permissions.administrator:
         return
@@ -45,7 +45,7 @@ async def rsvp_destroy(context):
         await client.delete_message(rsvp_message.message)
 
 
-@client.command(name='expires', pass_context=True)
+@client.command(name='expires', description='Sets the amount of time for rsvps to expire.' pass_context=True)
 async def expires(context):
     if not context.message.author.server_permissions.administrator:
         return
