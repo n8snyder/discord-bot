@@ -107,10 +107,10 @@ class Alert():
         for emoji, users in self.responses.items():
             for user in users:
                 if emoji in NUMBER_EMOJIS:
-                    rsvps += f' {user.name} ({EMOJI_TEXT[emoji]})'
+                    rsvps += f' {user.display_name} ({EMOJI_TEXT[emoji]})'
                     total_rsvps += int(EMOJI_TEXT[emoji])
                 elif emoji in QUESTION_EMOJIS:
-                    maybes += f' {user.name}'
+                    maybes += f' {user.display_name}'
                     total_maybes += 1
                 else:
                     # This case is unhandled
