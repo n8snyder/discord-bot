@@ -8,6 +8,8 @@ django = "*"
 ipython = "*"
 arrow = "*"
 "discord.py" = "*"
+invoke = "*"
+"psycopg2" = "*"
 
 [dev-packages]
 
