@@ -1,3 +1,5 @@
+import django
+django.setup()
 import random
 import asyncio
 import aiohttp
@@ -8,6 +10,9 @@ import arrow
 from discord import Game
 from discord.ext.commands import Bot
 
+
+from rsvp_bot.models import (
+    EventBoard, Server, Channel, Event, Attendee, User)
 from utils import (RSVPMessage, RECOGNIZED_EMOJIS, parse_expiration)
 
 BOT_PREFIX = ("!")
@@ -29,6 +34,14 @@ async def rsvp_setup(context):
         rsvp_message = await client.say('*No RSVPs*')
         rsvp_messages[context.message.channel] = RSVPMessage(rsvp_message)
         await client.pin_message(rsvp_message)
+        # Update backend
+        server = Server.objects.get_or_create(
+            name=context.message.server.name, discord_id=context.message.server.id)[0]
+        channel = Channel.objects.get_or_create(
+            name=context.message.channel.name, discord_id=context.message.channel.id)[0]
+        expiration = rsvp_messages[context.message.channel].expiration
+        EventBoard.objects.get_or_create(
+            server=server, channel=channel, expiration=expiration)
 
 
 @client.command(name='rsvp_destroy', description='Removes rsvp message from channel.', pass_context=True)
@@ -41,6 +54,8 @@ async def rsvp_destroy(context):
         return
     else:
         await client.delete_message(rsvp_message.message)
+        EventBoard.objects.get(server__discord_id=context.message.server.id,
+                               channel__discord_id=context.message.channel.id).delete()
 
 
 @client.command(name='expires', description='Sets the amount of time for rsvps to expire.', pass_context=True)
@@ -54,6 +69,10 @@ async def expires(context):
 
     expiration = parse_expiration(context.view.read_rest().strip())
     rsvp_message.set_expiration(expiration)
+    event_board = EventBoard.objects.get(
+        server__discord_id=context.message.server.id, channel__discord_id=context.message.channel.id)
+    event_board.expiration = expiration
+    event_board.save()
 
 #
 # Events

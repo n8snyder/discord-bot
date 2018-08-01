@@ -18,13 +18,19 @@ class Event(models.Model):
 
 
 class Server(models.Model):
+    discord_id = models.CharField(max_length=128)
     name = models.CharField(max_length=256)
     users = models.ManyToManyField(User)
 
 
+class Channel(models.Model):
+    discord_id = models.CharField(max_length=128)
+    name = models.CharField(max_length=256)
+
+
 class EventBoard(models.Model):
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
-    channel_name = models.CharField(max_length=256)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     # expirations is time in seconds before event expires
     expiration = models.IntegerField()
     events = models.ManyToManyField(Event)

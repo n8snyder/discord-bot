@@ -10,6 +10,7 @@ arrow = "*"
 "discord.py" = "*"
 invoke = "*"
 "psycopg2" = "*"
+django-extensions = "*"
 
 [dev-packages]
 
