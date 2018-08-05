@@ -16,6 +16,11 @@ def parse_expiration(time_text):
 
     time_in_seconds = 0
     split_time = time_text.split()
+
+    # if they only enter one thing, assume it's a number in seconds.
+    if len(split_time) == 1:
+        return float(split_time[0])
+
     time_iter = iter(split_time)
     for time in time_iter:
         amount = float(time)

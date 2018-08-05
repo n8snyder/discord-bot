@@ -12,7 +12,7 @@ from discord.ext.commands import Bot
 
 
 from rsvp_bot.models import (
-    EventBoard, Server, Channel, Event, Attendee, User)
+    EventBoard, Server, Channel, Message, Event, Attendee, User)
 from utils import (RSVPMessage, RECOGNIZED_EMOJIS, parse_expiration)
 
 BOT_PREFIX = ("!")
@@ -39,9 +39,12 @@ async def rsvp_setup(context):
             name=context.message.server.name, discord_id=context.message.server.id)[0]
         channel = Channel.objects.get_or_create(
             name=context.message.channel.name, discord_id=context.message.channel.id)[0]
+        timestamp = arrow.get(context.message.timestamp, 'UTC').datetime
+        message = Message.objects.get_or_create(
+            content=rsvp_message.content, timestamp=timestamp, discord_id=rsvp_message.id)[0]
         expiration = rsvp_messages[context.message.channel].expiration
         EventBoard.objects.get_or_create(
-            server=server, channel=channel, expiration=expiration)
+            server=server, channel=channel, message=message, expiration=expiration)
 
 
 @client.command(name='rsvp_destroy', description='Removes rsvp message from channel.', pass_context=True)
@@ -83,6 +86,17 @@ async def expires(context):
 async def on_ready():
     await client.change_presence(game=Game(name="with rsvps"))
     print("Logged in as " + client.user.name)
+    backed_up_boards = EventBoard.objects.all()
+    all_channels = client.get_all_channels()
+    print(len(backed_up_boards))
+    for board in backed_up_boards:
+        channel = discord.utils.get(all_channels, id=board.channel.discord_id)
+        timestamp = arrow.get(board.message.timestamp).naive
+        async for message in client.logs_from(channel, around=timestamp):
+            if message.id == board.message.discord_id:
+                break
+        rsvp_messages[channel] = RSVPMessage(
+            message, expiration=board.expiration)
 
 
 @client.event
