@@ -76,6 +76,7 @@ async def expires(context):
         server__discord_id=context.message.server.id, channel__discord_id=context.message.channel.id)
     event_board.expiration = expiration
     event_board.save()
+    await client.add_reaction(context.message, '✅')
 
 #
 # Events
