@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'rsvp_bot.apps.RsvpBotConfig',
+    'rsvp_bot',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +51,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'discord_bot.urls'
+# ROOT_URLCONF = 'discord_bot.urls'
 
 TEMPLATES = [
     {
@@ -69,7 +69,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'discord_bot.wsgi.application'
+# WSGI_APPLICATION = 'discord_bot.wsgi.application'
 
 
 # Database

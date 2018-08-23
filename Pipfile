@@ -11,6 +11,7 @@ arrow = "*"
 invoke = "*"
 "psycopg2" = "*"
 django-extensions = "*"
+ipdb = "*"
 
 [dev-packages]
 
