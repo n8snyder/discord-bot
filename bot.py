@@ -1,10 +1,12 @@
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 import django
 django.setup()
 import random
 import asyncio
 import aiohttp
 import json
-import os
+
 import discord
 import arrow
 from discord import Game
