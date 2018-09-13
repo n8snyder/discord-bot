@@ -15,7 +15,8 @@ from discord.ext.commands import Bot
 
 from rsvp_bot.models import (
     EventBoard, Server, Channel, Message, Event, Attendee, User)
-from utils import (RSVPMessage, RECOGNIZED_EMOJIS, parse_expiration)
+from utils import (RSVPMessage, RECOGNIZED_EMOJIS,
+                   parse_expiration, get_existing_message)
 
 BOT_PREFIX = ("!")
 TOKEN = os.environ['BOT_TOKEN']
@@ -92,18 +93,17 @@ async def on_ready():
     backed_up_boards = EventBoard.objects.all()
     all_channels = client.get_all_channels()
     print(len(backed_up_boards))
-    for board in backed_up_boards:
-        channel = discord.utils.get(all_channels, id=board.channel.discord_id)
-        timestamp = arrow.get(board.message.timestamp).naive
-        async for message in client.logs_from(channel, around=timestamp):
-            if message.id == board.message.discord_id:
-                break
+    for event_board in backed_up_boards:
+        channel = discord.utils.get(
+            all_channels, id=event_board.channel.discord_id)
+        message = await get_existing_message(client, event_board.message, channel)
         rsvp_messages[channel] = RSVPMessage(
-            message, expiration=board.expiration)
+            message, expiration=event_board.expiration)
 
 
 @client.event
 async def on_reaction_add(reaction, user):
+    # TODO: Abstract this to make more clear
     try:
         rsvp_message = rsvp_messages[reaction.message.channel]
     except KeyError:
@@ -111,6 +111,9 @@ async def on_reaction_add(reaction, user):
 
     if reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
         alert = rsvp_message.create_alert(reaction.message)
+        # Why wouldnt there be an alert? You literally just created one.
+        # What is happening is if the message has expired, alert won't be created.
+        # This should be done explicitely here either instead or additionally.
         if alert:
             alert.responses.post(reaction, user)
             rsvp_message.compose_content()
@@ -126,6 +129,7 @@ async def on_reaction_remove(reaction, user):
 
     if reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
         alert = rsvp_message.get_alert(reaction.message)
+        # There should be a check for expired alerts at start of function, in addition to get_alert.
         if alert:
             alert.responses.delete(reaction, user)
             rsvp_message.update_alerts()
@@ -141,6 +145,7 @@ async def on_message_edit(before, after):
         return
 
     if client.user != before.author:
+        # There should be a check for expired alerts at start of function, in addition to get_alert.
         alert = rsvp_message.get_alert(before)
         if alert:
             alert.update_message(after)

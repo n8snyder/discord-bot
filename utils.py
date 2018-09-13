@@ -9,6 +9,16 @@ RECOGNIZED_EMOJIS = NUMBER_EMOJIS + QUESTION_EMOJIS
 EMOJI_TEXT = {'1⃣': '1', '2⃣': '2', '3⃣': '3', '4⃣': '4', '5⃣': '5',
               '6⃣': '6', '7⃣': '7', '8⃣': '8', '9⃣': '9', '🔟': '10', '❓': '?', '❔': '?'}
 
+# looks for message in channel
+
+
+async def get_existing_message(client, message, channel):
+    timestamp = arrow.get(message.timestamp).naive
+    async for existing_message in client.logs_from(channel, around=timestamp):
+        if existing_message.id == message.discord_id:
+            break
+    return existing_message
+
 
 def parse_expiration(time_text):
     if time_text.lower() == 'never':

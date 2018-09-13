@@ -39,5 +39,5 @@ class EventBoard(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
     # expirations is time in seconds before event expires
-    expiration = models.IntegerField()
+    expiration = models.FloatField()
     events = models.ManyToManyField(Event)
