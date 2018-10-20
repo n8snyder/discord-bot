@@ -5,7 +5,8 @@ import arrow
 
 NUMBER_EMOJIS = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣', '🔟']
 QUESTION_EMOJIS = ['❓', '❔']
-RECOGNIZED_EMOJIS = NUMBER_EMOJIS + QUESTION_EMOJIS
+WANTS_EMOJIS = ['🙏']
+RECOGNIZED_EMOJIS = NUMBER_EMOJIS + QUESTION_EMOJIS + WANTS_EMOJIS
 EMOJI_TEXT = {'1⃣': '1', '2⃣': '2', '3⃣': '3', '4⃣': '4', '5⃣': '5',
               '6⃣': '6', '7⃣': '7', '8⃣': '8', '9⃣': '9', '🔟': '10', '❓': '?', '❔': '?'}
 
@@ -107,7 +108,6 @@ class Alert():
 
     @property
     def is_expired(self):
-        print((arrow.utcnow() - arrow.get(self.post_date)).seconds, self.expiration)
         return (arrow.utcnow() - arrow.get(self.post_date)).seconds > self.expiration
 
     def set_expiration(self, expiration):
@@ -119,25 +119,35 @@ class Alert():
 
     def compose_content(self):
         content = self.message.content
-        rsvps = ''
+        rsvps = []
         total_rsvps = 0
-        maybes = ''
+        maybes = []
         total_maybes = 0
+        wants = []
+        total_wants = 0
         for emoji, users in self.responses.items():
             for user in users:
                 if emoji in NUMBER_EMOJIS:
-                    rsvps += f' {user.display_name} ({EMOJI_TEXT[emoji]})'
+                    rsvps.append(f'{user.display_name} ({EMOJI_TEXT[emoji]})')
                     total_rsvps += int(EMOJI_TEXT[emoji])
                 elif emoji in QUESTION_EMOJIS:
-                    maybes += f' {user.display_name}'
+                    maybes.append(user.display_name)
                     total_maybes += 1
+                elif emoji in WANTS_EMOJIS:
+                    wants.append(user.display_name)
+                    total_wants += 1
                 else:
                     # This case is unhandled
                     pass
         if rsvps:
-            content += f'\nRSVPs ({total_rsvps}): {rsvps}'
+            rsvp_content = ', '.join(rsvps)
+            content += f'\nRSVPs ({total_rsvps}): {rsvp_content}'
         if maybes:
-            content += f'\nMaybes ({total_maybes}): {maybes}'
+            maybe_content = ', '.join(maybes)
+            content += f'\nMaybes ({total_maybes}): {maybe_content}'
+        if wants:
+            wants_content = ', '.join(wants)
+            content += f'\nSeeking invites ({total_wants}): {wants_content}'
         self.composed_content = content
 
 
