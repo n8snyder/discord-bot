@@ -17,6 +17,13 @@ sudo = f'sudo -u {DB_ADMIN}'
 
 
 @task
+def psql_start_mac(ctx):
+    run(
+        "/usr/local/bin/pg_ctl -w -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
+    )
+
+
+@task
 def create_db(ctx):
     results = run('%s psql -lqt | cut -d \| -f 1 | grep -w %s | wc -l' %
                   (sudo, DB_NAME)).stdout

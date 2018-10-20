@@ -93,6 +93,9 @@ class RSVPMessage():
         for alert in self.alerts:
             alert.set_expiration(expiration)
 
+    def is_expired(self, message):
+        return (arrow.utcnow() - arrow.get(message.timestamp)).seconds > self.expiration
+
 
 class Alert():
     def __init__(self, message, expiration=None):
@@ -104,6 +107,7 @@ class Alert():
 
     @property
     def is_expired(self):
+        print((arrow.utcnow() - arrow.get(self.post_date)).seconds, self.expiration)
         return (arrow.utcnow() - arrow.get(self.post_date)).seconds > self.expiration
 
     def set_expiration(self, expiration):

@@ -37,6 +37,7 @@ async def rsvp_setup(context):
         rsvp_message = await client.say('*No RSVPs*')
         rsvp_messages[context.message.channel] = RSVPMessage(rsvp_message)
         await client.pin_message(rsvp_message)
+        await client.add_reaction(context.message, '✅')
         # Update backend
         server = Server.objects.get_or_create(
             name=context.message.server.name, discord_id=context.message.server.id)[0]
@@ -60,6 +61,7 @@ async def rsvp_destroy(context):
         return
     else:
         await client.delete_message(rsvp_message.message)
+        await client.add_reaction(context.message, '✅')
         EventBoard.objects.get(server__discord_id=context.message.server.id,
                                channel__discord_id=context.message.channel.id).delete()
 
@@ -97,8 +99,10 @@ async def on_ready():
         channel = discord.utils.get(
             all_channels, id=event_board.channel.discord_id)
         message = await get_existing_message(client, event_board.message, channel)
-        rsvp_messages[channel] = RSVPMessage(
-            message, expiration=event_board.expiration)
+        rsvp_message = RSVPMessage(message, expiration=event_board.expiration)
+        rsvp_message.compose_content()
+        await client.edit_message(rsvp_message.message, rsvp_message.content)
+        rsvp_messages[channel] = rsvp_message
 
 
 @client.event
@@ -107,6 +111,9 @@ async def on_reaction_add(reaction, user):
     try:
         rsvp_message = rsvp_messages[reaction.message.channel]
     except KeyError:
+        return
+
+    if rsvp_message.is_expired(reaction.message):
         return
 
     if reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
@@ -127,6 +134,9 @@ async def on_reaction_remove(reaction, user):
     except KeyError:
         return
 
+    if rsvp_message.is_expired(reaction.message):
+        return
+
     if reaction.emoji in RECOGNIZED_EMOJIS and client.user != reaction.message.author:
         alert = rsvp_message.get_alert(reaction.message)
         # There should be a check for expired alerts at start of function, in addition to get_alert.
@@ -142,6 +152,9 @@ async def on_message_edit(before, after):
     try:
         rsvp_message = rsvp_messages[before.channel]
     except KeyError:
+        return
+
+    if rsvp_message.is_expired(before):
         return
 
     if client.user != before.author:
@@ -182,5 +195,10 @@ async def remove_alerts():
                 await client.edit_message(rsvp_message.message, rsvp_message.content)
 
 
-client.loop.create_task(remove_alerts())
-client.run(TOKEN)
+def run():
+    client.loop.create_task(remove_alerts())
+    client.run(TOKEN)
+
+
+if __name__ == "__main__":
+    run()

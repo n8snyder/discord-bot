@@ -12,6 +12,7 @@ invoke = "*"
 "psycopg2" = "*"
 django-extensions = "*"
 ipdb = "*"
+gunicorn = "*"
 
 [dev-packages]
 
